@@ -1,0 +1,15 @@
+{
+	"geode": "1.0.0-beta.17",
+	"version": "v0.1.0",
+	"id": "chs000.modmenutest",
+	"name": "SimpleModMenu",
+	"developer": "chs000",
+	"description": "",
+    "dependencies": [
+        {
+            "id": "camila314.acbypass",
+            "version": ">=v1.0.0",
+            "required": true
+        }
+    ]
+}
