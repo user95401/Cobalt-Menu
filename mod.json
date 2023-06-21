@@ -2,7 +2,7 @@
 	"geode": "1.0.0-beta.17",
 	"version": "v0.1.0",
 	"id": "chs000.modmenutest",
-	"name": "SimpleModMenu",
+	"name": "Cobalt Menu",
 	"developer": "chs000",
 	"description": "",
     "dependencies": [
@@ -11,5 +11,14 @@
             "version": ">=v1.0.0",
             "required": true
         }
-    ]
+    ],
+    "repository": "https://github.com/Igbalabanov/Cobalt-Menu",
+    "settings": {
+        "ShowOnStartup": {
+            "name": "Show On Startup",
+            "description": "Should the mod menu show on startup",
+            "type": "bool",
+            "default": true
+        }
+    }
 }

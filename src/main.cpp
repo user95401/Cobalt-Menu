@@ -13,7 +13,7 @@
 using namespace geode::prelude;
 
 
-bool isMenuShown = true;
+bool isMenuShown = Mod::get()->getSettingValue<bool>("ShowOnStartup");
 
 // Cheats
 bool isNoclip = false;
