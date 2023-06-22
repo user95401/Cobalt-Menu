@@ -1,5 +1,12 @@
-# Simple Mod Menu
+# Cobalt Menu
 
 A Simple mod menu
 
-# A lot of these patches are 'ported' over from crystal client and megahack v5
+**A lot of the features are 'ported' over from megahack v5 and crystal client**
+
+Features:
+
+ - Noclip
+ - Slider Bypass
+ - No death effect
+ - Not Much else lmao

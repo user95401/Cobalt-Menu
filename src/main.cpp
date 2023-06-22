@@ -27,7 +27,6 @@ auto isNotHide = Mod::get()->getSavedValue<bool>("isNotHide");
 auto isNotShake = Mod::get()->getSavedValue<bool>("isNotShake");
 auto isNotDeathEffect = Mod::get()->getSavedValue<bool>("isNotDeathEffect");
 
-
 class $modify(CCKeyboardDispatcher) {
     bool dispatchKeyboardMSG(enumKeyCodes key, bool down) {
         if (down && (key == KEY_Tab GEODE_MACOS(|| key == KEY_Tab))) {
@@ -39,7 +38,7 @@ class $modify(CCKeyboardDispatcher) {
 };
 
 
-class $modify(PlayLayer) {
+class $modify(PlayLayerModification, PlayLayer) {
 
 
     void destroyPlayer(PlayerObject* p, GameObject* g) 
@@ -211,7 +210,6 @@ $on_mod(Loaded) {
             }
 
             ImGui::End();
-
 
             // Cheats and more stuff
             ImGui::Begin("Cheats");
