@@ -19,6 +19,7 @@ bool isMenuShown = Mod::get()->getSettingValue<bool>("ShowOnStartup");
 bool isNoclip = false;
 
 // Global
+auto isCopyHack = Mod::get()->getSavedValue<bool>("isCopyHack");
 auto isEditHack = Mod::get()->getSavedValue<bool>("isEditHack");
 auto isSliderHack = Mod::get()->getSavedValue<bool>("isSliderHack");
 
@@ -95,6 +96,17 @@ void PatchGame() {
     } else {
         Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x2E5CA), {0x76});
         Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x2E5F8), {0x76});
+    }
+
+    // Copy Hack. Patch from MHv5
+    if (isCopyHack) {
+        Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x179B8E), {0x90, 0x90});
+        Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x176F5C), {0x8B, 0xCA, 0x90});
+        Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x176FE5), {0xB0, 0x01, 0x90});
+    } else {
+        Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x179B8E), {0x75, 0x0E});
+        Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x176F5C), {0x0F, 0x44, 0xCA});
+        Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x176FE5), {0x0F, 0x95, 0xC0});
     }
 
 
@@ -221,6 +233,11 @@ $on_mod(Loaded) {
 
             // Global
             ImGui::Begin("Global");
+
+            if (ImGui::Checkbox("Copy Hack", &isCopyHack)) {
+                Mod::get()->setSavedValue<bool>("isCopyHack", isCopyHack);
+                PatchGame();
+            }
             
             if (ImGui::Checkbox("Edit Hack", &isEditHack)) {
                 Mod::get()->setSavedValue<bool>("isEditHack", isEditHack);
