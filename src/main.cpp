@@ -7,21 +7,31 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/modify/PlayerObject.hpp>
 #include <Geode/modify/GJGameLevel.hpp>
-
+#include <Geode/cocos/layers_scenes_transitions_nodes/CCTransition.h>
 #include <Geode/modify/CCKeyboardDispatcher.hpp>
 
 using namespace geode::prelude;
 
 
 bool isMenuShown = Mod::get()->getSettingValue<bool>("ShowOnStartup");
+bool isDebugOn = Mod::get()->getSettingValue<bool>("isDebugOn");
+
 
 // Cheats
 bool isNoclip = false;
 
 // Global
 auto isCopyHack = Mod::get()->getSavedValue<bool>("isCopyHack");
+auto isTransitionOffHack = Mod::get()->getSavedValue<bool>("isTransitionOffHack");
 auto isEditHack = Mod::get()->getSavedValue<bool>("isEditHack");
 auto isSliderHack = Mod::get()->getSavedValue<bool>("isSliderHack");
+
+// Misc
+int menuKey;
+
+int selectedKeybindIndex = Mod::get()->getSavedValue<int>("menuKey");
+
+cocos2d::enumKeyCodes PickedKey = KEY_Tab;
 
 // Visual
 auto isNotHide = Mod::get()->getSavedValue<bool>("isNotHide");
@@ -30,7 +40,7 @@ auto isNotDeathEffect = Mod::get()->getSavedValue<bool>("isNotDeathEffect");
 
 class $modify(CCKeyboardDispatcher) {
     bool dispatchKeyboardMSG(enumKeyCodes key, bool down) {
-        if (down && (key == KEY_Tab GEODE_MACOS(|| key == KEY_Tab))) {
+        if (down && (key == PickedKey)) {
             isMenuShown = !isMenuShown;
             return true;
         }
@@ -78,7 +88,51 @@ class $modify(PlayerObject) {
     }
 };
 
+// This is not the best way to do this
+void caseMenuKeybind() {
 
+    menuKey = Mod::get()->getSavedValue<int>("menuKey");
+
+    switch(menuKey) {
+    case 0:
+        PickedKey = KEY_Tab;
+        break;
+
+    case 1:
+        PickedKey = KEY_F1;
+        break;
+
+    case 2:
+        PickedKey = KEY_F2;
+        break;
+
+    case 3:
+        PickedKey = KEY_F3;
+        break;
+
+    case 4:
+        PickedKey = KEY_F4;
+        break;
+
+    case 5:
+        PickedKey = KEY_F5;
+        break;
+
+    // case 6: // FIX KEY_LeftShift and KEY_RightShift not working!
+    //     PickedKey = KEY_LeftShift;
+    //     break;
+
+    // case 7:
+    //     PickedKey = KEY_RightShift;
+    //     break;
+
+    default:
+        // code block
+        log::warn("menuKey not found, reverting to tab.");
+        PickedKey = KEY_Tab;
+        break;
+    }
+}
 
 void PatchGame() {
 
@@ -117,9 +171,10 @@ $on_mod(Loaded) {
 
     PatchGame();
 
+    caseMenuKeybind();
+
     ImGuiCocos::get().setup([&] {
-        // ImGui Style from https://www.unknowncheats.me/forum/c-and-c-/189635-imgui-style-settings.html
-        ImGuiStyle * style = &ImGui::GetStyle();
+       ImGuiStyle * style = &ImGui::GetStyle();
 
         // Style made with ImThemes
         style->Alpha = 1.0f;
@@ -221,7 +276,20 @@ $on_mod(Loaded) {
                 OptionsLayer::addToCurrentScene(false);
             }
 
+
+            const char* keybindOptions[] = { "Tab", "F1", "F2", "F3", "F4", "F5"};
+
+            if (ImGui::Combo("Menu Keybind", &selectedKeybindIndex, keybindOptions, IM_ARRAYSIZE(keybindOptions))) {
+                Mod::get()->setSavedValue<int>("menuKey", selectedKeybindIndex); // Could Be a better way to do this but it sucks
+                caseMenuKeybind();
+            }
+            // TODO: mod options
+
             ImGui::End();
+
+
+
+
 
             // Cheats and more stuff
             ImGui::Begin("Cheats");
@@ -238,7 +306,12 @@ $on_mod(Loaded) {
                 Mod::get()->setSavedValue<bool>("isCopyHack", isCopyHack);
                 PatchGame();
             }
+
             
+            if (ImGui::Checkbox("No Transitions", &isTransitionOffHack)) {
+                Mod::get()->setSavedValue<bool>("isTransitionOffHack", isTransitionOffHack);
+            }
+
             if (ImGui::Checkbox("Edit Hack", &isEditHack)) {
                 Mod::get()->setSavedValue<bool>("isEditHack", isEditHack);
                 PatchGame();
@@ -267,6 +340,25 @@ $on_mod(Loaded) {
             ImGui::Checkbox("No Hide Player", &isNotHide);
 
             ImGui::End();
+
+            // DEBUG STUFF
+            if (isDebugOn) {
+                ImGui::Begin("DEBUG");
+                
+                ImGui::Text("Selected Keybind Index: %d", selectedKeybindIndex);
+
+                ImGui::Separator();
+
+                ImGui::Text("Saved Values:");
+
+                ImGui::Text("menuKey: %d", Mod::get()->getSavedValue<int>("menuKey"));
+
+                ImGui::Text("isNoclip: %s", isNoclip ? "True" : "False");
+
+                ImGui::Text("isTransitionOffHack: %s", isTransitionOffHack ? "True" : "False");
+
+                ImGui::End();
+            }
 
         }
     });

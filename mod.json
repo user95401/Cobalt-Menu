@@ -19,6 +19,12 @@
             "description": "Should the mod menu show on startup",
             "type": "bool",
             "default": true
+        },
+        "isDebugOn": {
+            "name": "Enable Debug Mode",
+            "description": "Enables a menu for debugging cobalt",
+            "type": "bool",
+            "default": false
         }
     }
 }
