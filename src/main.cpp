@@ -2,6 +2,7 @@
 #include <imgui-cocos.hpp>
 #include <chrono>
 
+#include <Geode/cocos/CCDirector.h>
 #include <Geode/modify/OptionsLayer.hpp>
 #include <Geode/modify/PlayLayer.hpp>
 #include <Geode/loader/Mod.hpp>
@@ -16,19 +17,25 @@ using namespace geode::prelude;
 bool isMenuShown = Mod::get()->getSettingValue<bool>("ShowOnStartup");
 bool isDebugOn = Mod::get()->getSettingValue<bool>("isDebugOn");
 
+// Speedhack
+static float SpeedHackSpeed = 1.00f;
+bool isSpeedhack = false;
 
 // Cheats
 bool isNoclip = false;
 
 // Global
+
 auto isCopyHack = Mod::get()->getSavedValue<bool>("isCopyHack");
+
 auto isTransitionOffHack = Mod::get()->getSavedValue<bool>("isTransitionOffHack");
+
 auto isEditHack = Mod::get()->getSavedValue<bool>("isEditHack");
 auto isSliderHack = Mod::get()->getSavedValue<bool>("isSliderHack");
 
 // Misc
 int menuKey;
-
+const char* keybindOptions[] = { "Tab", "F1", "F2", "F3", "F4", "F5"};
 int selectedKeybindIndex = Mod::get()->getSavedValue<int>("menuKey");
 
 cocos2d::enumKeyCodes PickedKey = KEY_Tab;
@@ -277,8 +284,6 @@ $on_mod(Loaded) {
             }
 
 
-            const char* keybindOptions[] = { "Tab", "F1", "F2", "F3", "F4", "F5"};
-
             if (ImGui::Combo("Menu Keybind", &selectedKeybindIndex, keybindOptions, IM_ARRAYSIZE(keybindOptions))) {
                 Mod::get()->setSavedValue<int>("menuKey", selectedKeybindIndex); // Could Be a better way to do this but it sucks
                 caseMenuKeybind();
@@ -288,7 +293,24 @@ $on_mod(Loaded) {
             ImGui::End();
 
 
+            // Cheats and more stuff
+            ImGui::Begin("Speedhack");
 
+            ImGui::Checkbox("Enable Speedhack", &isSpeedhack);
+
+            if (isSpeedhack) 
+            {
+                CCDirector::sharedDirector()->getScheduler()->setTimeScale(SpeedHackSpeed);
+            }
+            else 
+            {
+                CCDirector::sharedDirector()->getScheduler()->setTimeScale(1.0f);
+            }
+
+
+            ImGui::DragFloat("Speed", &SpeedHackSpeed, 0.1f, 0.0f, 5.0f);
+
+            ImGui::End();
 
 
             // Cheats and more stuff
@@ -307,10 +329,10 @@ $on_mod(Loaded) {
                 PatchGame();
             }
 
-            
-            if (ImGui::Checkbox("No Transitions", &isTransitionOffHack)) {
-                Mod::get()->setSavedValue<bool>("isTransitionOffHack", isTransitionOffHack);
-            }
+            // TODO: this            
+            // if (ImGui::Checkbox("No Transitions", &isTransitionOffHack)) {
+            //     Mod::get()->setSavedValue<bool>("isTransitionOffHack", isTransitionOffHack);
+            // }
 
             if (ImGui::Checkbox("Edit Hack", &isEditHack)) {
                 Mod::get()->setSavedValue<bool>("isEditHack", isEditHack);
@@ -353,7 +375,7 @@ $on_mod(Loaded) {
 
                 ImGui::Text("menuKey: %d", Mod::get()->getSavedValue<int>("menuKey"));
 
-                ImGui::Text("isNoclip: %s", isNoclip ? "True" : "False");
+                ImGui::Text("Speed: %f", SpeedHackSpeed);
 
                 ImGui::Text("isTransitionOffHack: %s", isTransitionOffHack ? "True" : "False");
 
