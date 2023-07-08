@@ -42,8 +42,9 @@ cocos2d::enumKeyCodes PickedKey = KEY_Tab;
 
 // Visual
 auto isNotHide = Mod::get()->getSavedValue<bool>("isNotHide");
-auto isNotShake = Mod::get()->getSavedValue<bool>("isNotShake");
 auto isNotDeathEffect = Mod::get()->getSavedValue<bool>("isNotDeathEffect");
+auto isNotShake = Mod::get()->getSavedValue<bool>("isNotShake");
+
 
 class $modify(CCKeyboardDispatcher) {
     bool dispatchKeyboardMSG(enumKeyCodes key, bool down) {
@@ -74,7 +75,6 @@ class $modify(PlayLayerModification, PlayLayer) {
             PlayLayer::shakeCamera(p0, p1, p2);
         }
     }
-
 };
 
 class $modify(PlayerObject) {
@@ -293,7 +293,7 @@ $on_mod(Loaded) {
             ImGui::End();
 
 
-            // Cheats and more stuff
+            // Speedhack
             ImGui::Begin("Speedhack");
 
             ImGui::Checkbox("Enable Speedhack", &isSpeedhack);
@@ -362,6 +362,8 @@ $on_mod(Loaded) {
             ImGui::Checkbox("No Hide Player", &isNotHide);
 
             ImGui::End();
+
+
 
             // DEBUG STUFF
             if (isDebugOn) {

@@ -9,4 +9,5 @@ Features:
  - Noclip
  - Slider Bypass
  - No death effect
- - Not Much else lmao
+ - Speedhack
+ - Copy Hack
