@@ -8,14 +8,16 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/modify/PlayerObject.hpp>
 #include <Geode/modify/GJGameLevel.hpp>
-#include <Geode/cocos/layers_scenes_transitions_nodes/CCTransition.h>
 #include <Geode/modify/CCKeyboardDispatcher.hpp>
-
+#include <Geode/fmod/fmod.hpp>
 using namespace geode::prelude;
 
 
 bool isMenuShown = Mod::get()->getSettingValue<bool>("ShowOnStartup");
 bool isDebugOn = Mod::get()->getSettingValue<bool>("isDebugOn");
+
+auto FontSize = Mod::get()->getSettingValue<int64_t>("FontSize");
+
 
 // Speedhack
 static float SpeedHackSpeed = 1.00f;
@@ -23,7 +25,8 @@ bool isSpeedhack = false;
 
 // Cheats
 bool isNoclip = false;
-
+bool isCollide = false;
+bool autoComplete = false;
 
 // Bypass
 auto isIconBypass = Mod::get()->getSavedValue<bool>("isIconBypass");
@@ -63,12 +66,28 @@ class $modify(CCKeyboardDispatcher) {
 
 class $modify(PlayLayerModification, PlayLayer) {
 
+    void update(float p0)
+    {
+        if (autoComplete)
+        {
+            PlayLayer::showEndLayer();
+            autoComplete = false;
+        }
+        PlayLayer::update(p0);
+    }
 
     void destroyPlayer(PlayerObject* p, GameObject* g) 
     {
         if (!isNoclip)
         {
             PlayLayer::destroyPlayer(p, g);
+        }
+    }
+
+    void checkCollisions(PlayerObject* p0, float p1) {
+        if (!isCollide)
+        {
+            PlayLayer::checkCollisions(p0, p1);
         }
     }
 
@@ -191,6 +210,8 @@ void PatchGame() {
 }
 
 
+
+
 $on_mod(Loaded) {
 
     PatchGame();
@@ -199,6 +220,10 @@ $on_mod(Loaded) {
 
     ImGuiCocos::get().setup([&] {
        ImGuiStyle * style = &ImGui::GetStyle();
+
+        ImGuiIO& io = ImGui::GetIO();
+        io.Fonts->AddFontFromFileTTF((Mod::get()->getResourcesDir() / "Inter-Regular.ttf").string().c_str(), FontSize);
+
 
         // Style made with ImThemes
         style->Alpha = 1.0f;
@@ -321,31 +346,35 @@ $on_mod(Loaded) {
 
             ImGui::End();
 
+            
+
 
             // Speedhack
             ImGui::Begin("Speedhack");
 
             ImGui::Checkbox("Enable Speedhack", &isSpeedhack);
 
-            if (isSpeedhack) 
-            {
+            if (isSpeedhack) {
+
                 CCDirector::sharedDirector()->getScheduler()->setTimeScale(SpeedHackSpeed);
             }
             else 
             {
                 CCDirector::sharedDirector()->getScheduler()->setTimeScale(1.0f);
             }
-
-
             ImGui::DragFloat("Speed", &SpeedHackSpeed, 0.1f, 0.0f, 5.0f);
-
             ImGui::End();
+
 
 
             // Cheats and more stuff
             ImGui::Begin("Cheats");
             
             ImGui::Checkbox("Noclip", &isNoclip);
+
+            ImGui::Checkbox("No Collision", &isCollide);
+
+            ImGui::Checkbox("Auto Complete", &autoComplete);
 
             ImGui::End();
 
@@ -412,12 +441,12 @@ $on_mod(Loaded) {
 
             // DEBUG STUFF
             if (isDebugOn) {
+
                 ImGui::Begin("DEBUG");
                 
                 ImGui::Text("Selected Keybind Index: %d", selectedKeybindIndex);
 
                 ImGui::Separator();
-
                 ImGui::Text("Saved Values:");
 
                 ImGui::Text("menuKey: %d", Mod::get()->getSavedValue<int>("menuKey"));
@@ -430,6 +459,3 @@ $on_mod(Loaded) {
         }
     });
 }
-
-
-

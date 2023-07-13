@@ -20,11 +20,28 @@
             "type": "bool",
             "default": true
         },
+        "FontSize": {
+            "name": "Font Size",
+            "description": "The size of the font",
+            "type": "int",
+            "default": 16,
+            "min": 4,
+            "max": 50,
+            "control": {
+                "big-arrows": true,
+                "input": true
+            }
+        },
         "isDebugOn": {
             "name": "Enable Debug Mode",
             "description": "Enables a menu for debugging cobalt",
             "type": "bool",
             "default": false
         }
+    },
+    "resources": {
+        "files": [
+            "resources/Inter-Regular.ttf"
+        ]
     }
 }
