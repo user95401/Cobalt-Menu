@@ -10,6 +10,7 @@
 #include <Geode/modify/GJGameLevel.hpp>
 #include <Geode/modify/CCKeyboardDispatcher.hpp>
 #include <Geode/fmod/fmod.hpp>
+#include <Geode/modify/GameManager.hpp>
 using namespace geode::prelude;
 
 
@@ -42,7 +43,7 @@ auto isEditHack = Mod::get()->getSavedValue<bool>("isEditHack");
 
 // Misc
 int menuKey;
-const char* keybindOptions[] = { "Tab", "F1", "F2", "F3", "F4", "F5"};
+const char* keybindOptions[] = { "Tab", "F1", "F2", "F3", "F4", "F5", "Control"};
 int selectedKeybindIndex = Mod::get()->getSavedValue<int>("menuKey");
 
 cocos2d::enumKeyCodes PickedKey = KEY_Tab;
@@ -53,6 +54,8 @@ auto isNotDeathEffect = Mod::get()->getSavedValue<bool>("isNotDeathEffect");
 auto isNotShake = Mod::get()->getSavedValue<bool>("isNotShake");
 
 
+
+
 class $modify(CCKeyboardDispatcher) {
     bool dispatchKeyboardMSG(enumKeyCodes key, bool down) {
         if (down && (key == PickedKey)) {
@@ -60,6 +63,31 @@ class $modify(CCKeyboardDispatcher) {
             return true;
         }
         return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down);
+    }
+};
+
+class $modify(GameManager) {
+    bool isColorUnlocked(int id, bool type)
+    {
+        if (isIconBypass)
+        {
+            return true;
+        }
+        else
+        {
+            return GameManager::isColorUnlocked(id, type);
+        }
+    }
+    bool isIconUnlocked(int id, IconType type) {
+
+        if (isIconBypass)
+        {
+            return true;
+        }
+        else
+        {
+            return GameManager::isIconUnlocked(id, type);
+        }
     }
 };
 
@@ -148,13 +176,9 @@ void caseMenuKeybind() {
         PickedKey = KEY_F5;
         break;
 
-    // case 6: // FIX KEY_LeftShift and KEY_RightShift not working!
-    //     PickedKey = KEY_LeftShift;
-    //     break;
-
-    // case 7:
-    //     PickedKey = KEY_RightShift;
-    //     break;
+    case 6:
+        PickedKey = KEY_Control;
+        break;    
 
     default:
         // code block
@@ -182,16 +206,6 @@ void PatchGame() {
         Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x2E5F8), {0x76});
     }
 
-    // Icon Bypass. Patch from (guess what? its MHv5!)
-    if (isIconBypass) {
-        Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0xC50A8), {0xB0, 0x01, 0x90, 0x90, 0x90});
-        Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0xC54BA), {0xB0, 0x01, 0x90, 0x90, 0x90});
-    } else {
-        Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0xC50A8), {0xE8, 0x7A, 0xCD, 0x19, 0x00});
-        Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0xC54BA), {0xE8, 0x68, 0xC9, 0x19, 00});
-    }
-
-
     // Copy Hack. Patch from MHv5
     if (isCopyHack) {
         Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x179B8E), {0x90, 0x90});
@@ -217,6 +231,9 @@ $on_mod(Loaded) {
     PatchGame();
 
     caseMenuKeybind();
+
+    
+
 
     ImGuiCocos::get().setup([&] {
        ImGuiStyle * style = &ImGui::GetStyle();
@@ -342,7 +359,6 @@ $on_mod(Loaded) {
             }
 
 
-            
 
 
             if (ImGui::Combo("Menu Keybind", &selectedKeybindIndex, keybindOptions, IM_ARRAYSIZE(keybindOptions))) {
@@ -361,8 +377,9 @@ $on_mod(Loaded) {
             ImGui::Checkbox("Enable Speedhack", &isSpeedhack);
 
             if (isSpeedhack) {
-
                 CCDirector::sharedDirector()->getScheduler()->setTimeScale(SpeedHackSpeed);
+                
+
             }
             else 
             {
@@ -394,7 +411,6 @@ $on_mod(Loaded) {
             if (ImGui::Checkbox("Icon Bypass", &isIconBypass))
             {
                 Mod::get()->setSavedValue<bool>("isIconBypass", isIconBypass);
-                PatchGame();
             }
 
             if (ImGui::Checkbox("Slider Bypass", &isSliderHack)) {
@@ -461,6 +477,9 @@ $on_mod(Loaded) {
                 ImGui::Text("menuKey: %d", Mod::get()->getSavedValue<int>("menuKey"));
 
                 ImGui::Text("Speed: %f", SpeedHackSpeed);
+
+
+               
 
                 ImGui::End();
             }
