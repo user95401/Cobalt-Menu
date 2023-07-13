@@ -27,6 +27,8 @@ bool isNoclip = false;
 
 // Bypass
 auto isIconBypass = Mod::get()->getSavedValue<bool>("isIconBypass");
+auto isCharacterFilterBypass = Mod::get()->getSavedValue<bool>("isCharacterFilterBypass");
+auto isSliderHack = Mod::get()->getSavedValue<bool>("isSliderHack");
 
 // Global
 
@@ -34,7 +36,6 @@ auto isCopyHack = Mod::get()->getSavedValue<bool>("isCopyHack");
 
 
 auto isEditHack = Mod::get()->getSavedValue<bool>("isEditHack");
-auto isSliderHack = Mod::get()->getSavedValue<bool>("isSliderHack");
 
 // Misc
 int menuKey;
@@ -183,6 +184,9 @@ void PatchGame() {
         Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x176FE5), {0x0F, 0x95, 0xC0});
     }
 
+    // Character Filter Bypass. Patch from MHv5
+    if (isCharacterFilterBypass) Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x21A99), {0x90, 0x90});
+    else Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x21A99), {0x75, 0x04});
 
 }
 
@@ -284,6 +288,8 @@ $on_mod(Loaded) {
 
     }).draw([&] {
 
+        
+
 
         if (isMenuShown) {
             ImGui::Begin("Misc");
@@ -292,9 +298,20 @@ $on_mod(Loaded) {
                 ShellExecuteA(NULL, "open", CCFileUtils::get()->getWritablePath().c_str(), NULL, NULL, SW_SHOWDEFAULT);
             }
 
+            if (ImGui::Button("Game Directory")) {
+                ShellExecuteA(NULL, "open", geode::dirs::getGameDir().string().c_str(), NULL, NULL, SW_SHOWDEFAULT);
+            }
+
+            if (ImGui::Button("Crashlogs")) {
+                ShellExecuteA(NULL, "open", geode::dirs::getCrashlogsDir().string().c_str(), NULL, NULL, SW_SHOWDEFAULT);
+            }
+
             if (ImGui::Button("Settings")) {
                 OptionsLayer::addToCurrentScene(false);
             }
+
+
+            
 
 
             if (ImGui::Combo("Menu Keybind", &selectedKeybindIndex, keybindOptions, IM_ARRAYSIZE(keybindOptions))) {
@@ -342,6 +359,18 @@ $on_mod(Loaded) {
                 PatchGame();
             }
 
+            if (ImGui::Checkbox("Slider Bypass", &isSliderHack)) {
+                Mod::get()->setSavedValue<bool>("isSliderHack", isSliderHack);
+                PatchGame();
+            }
+
+
+            if (ImGui::Checkbox("Character Filter Bypass", &isCharacterFilterBypass))
+            {
+                Mod::get()->setSavedValue<bool>("isCharacterBypass", isCharacterFilterBypass);
+                PatchGame();
+            }
+
             ImGui::End();
 
 
@@ -358,10 +387,7 @@ $on_mod(Loaded) {
                 PatchGame();
             }
 
-            if (ImGui::Checkbox("Slider Bypass", &isSliderHack)) {
-                Mod::get()->setSavedValue<bool>("isSliderHack", isSliderHack);
-                PatchGame();
-            }
+
 
 
             ImGui::End();
