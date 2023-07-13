@@ -24,11 +24,14 @@ bool isSpeedhack = false;
 // Cheats
 bool isNoclip = false;
 
+
+// Bypass
+auto isIconBypass = Mod::get()->getSavedValue<bool>("isIconBypass");
+
 // Global
 
 auto isCopyHack = Mod::get()->getSavedValue<bool>("isCopyHack");
 
-auto isTransitionOffHack = Mod::get()->getSavedValue<bool>("isTransitionOffHack");
 
 auto isEditHack = Mod::get()->getSavedValue<bool>("isEditHack");
 auto isSliderHack = Mod::get()->getSavedValue<bool>("isSliderHack");
@@ -159,6 +162,16 @@ void PatchGame() {
         Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x2E5F8), {0x76});
     }
 
+    // Icon Bypass. Patch from (guess what? its MHv5!)
+    if (isIconBypass) {
+        Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0xC50A8), {0xB0, 0x01, 0x90, 0x90, 0x90});
+        Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0xC54BA), {0xB0, 0x01, 0x90, 0x90, 0x90});
+    } else {
+        Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0xC50A8), {0xE8, 0x7A, 0xCD, 0x19, 0x00});
+        Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0xC54BA), {0xE8, 0x68, 0xC9, 0x19, 00});
+    }
+
+
     // Copy Hack. Patch from MHv5
     if (isCopyHack) {
         Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x179B8E), {0x90, 0x90});
@@ -288,7 +301,6 @@ $on_mod(Loaded) {
                 Mod::get()->setSavedValue<int>("menuKey", selectedKeybindIndex); // Could Be a better way to do this but it sucks
                 caseMenuKeybind();
             }
-            // TODO: mod options
 
             ImGui::End();
 
@@ -321,6 +333,18 @@ $on_mod(Loaded) {
             ImGui::End();
 
 
+            // Cheats and more stuff
+            ImGui::Begin("Bypass");
+            
+            if (ImGui::Checkbox("Icon Bypass", &isIconBypass))
+            {
+                Mod::get()->setSavedValue<bool>("isIconBypass", isIconBypass);
+                PatchGame();
+            }
+
+            ImGui::End();
+
+
             // Global
             ImGui::Begin("Global");
 
@@ -328,11 +352,6 @@ $on_mod(Loaded) {
                 Mod::get()->setSavedValue<bool>("isCopyHack", isCopyHack);
                 PatchGame();
             }
-
-            // TODO: this            
-            // if (ImGui::Checkbox("No Transitions", &isTransitionOffHack)) {
-            //     Mod::get()->setSavedValue<bool>("isTransitionOffHack", isTransitionOffHack);
-            // }
 
             if (ImGui::Checkbox("Edit Hack", &isEditHack)) {
                 Mod::get()->setSavedValue<bool>("isEditHack", isEditHack);
@@ -378,8 +397,6 @@ $on_mod(Loaded) {
                 ImGui::Text("menuKey: %d", Mod::get()->getSavedValue<int>("menuKey"));
 
                 ImGui::Text("Speed: %f", SpeedHackSpeed);
-
-                ImGui::Text("isTransitionOffHack: %s", isTransitionOffHack ? "True" : "False");
 
                 ImGui::End();
             }
