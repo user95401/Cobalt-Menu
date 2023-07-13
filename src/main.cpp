@@ -225,6 +225,7 @@ $on_mod(Loaded) {
         io.Fonts->AddFontFromFileTTF((Mod::get()->getResourcesDir() / "Inter-Regular.ttf").string().c_str(), FontSize);
 
 
+
         // Style made with ImThemes
         style->Alpha = 1.0f;
         style->DisabledAlpha = 0.6000000238418579f;
@@ -322,10 +323,15 @@ $on_mod(Loaded) {
             if (ImGui::Button("AppData")) {
                 ShellExecuteA(NULL, "open", CCFileUtils::get()->getWritablePath().c_str(), NULL, NULL, SW_SHOWDEFAULT);
             }
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("Opens the appdata folder");
+
 
             if (ImGui::Button("Game Directory")) {
                 ShellExecuteA(NULL, "open", geode::dirs::getGameDir().string().c_str(), NULL, NULL, SW_SHOWDEFAULT);
             }
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("Opens the folder with geometrydash.exe");
 
             if (ImGui::Button("Crashlogs")) {
                 ShellExecuteA(NULL, "open", geode::dirs::getCrashlogsDir().string().c_str(), NULL, NULL, SW_SHOWDEFAULT);
@@ -375,6 +381,9 @@ $on_mod(Loaded) {
             ImGui::Checkbox("No Collision", &isCollide);
 
             ImGui::Checkbox("Auto Complete", &autoComplete);
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("Auto completes next level you open, then resets this setting back to zero");
+
 
             ImGui::End();
 
