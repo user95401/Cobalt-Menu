@@ -11,6 +11,10 @@
 #include <Geode/modify/CCKeyboardDispatcher.hpp>
 #include <Geode/fmod/fmod.hpp>
 #include <Geode/modify/GameManager.hpp>
+#include <Geode/binding/EditorUI.hpp>
+
+
+
 using namespace geode::prelude;
 
 
@@ -31,14 +35,13 @@ bool autoComplete = false;
 
 // Bypass
 auto isIconBypass = Mod::get()->getSavedValue<bool>("isIconBypass");
+bool islockAllIcons = false;
 auto isCharacterFilterBypass = Mod::get()->getSavedValue<bool>("isCharacterFilterBypass");
 auto isSliderHack = Mod::get()->getSavedValue<bool>("isSliderHack");
 
 // Global
 
 auto isCopyHack = Mod::get()->getSavedValue<bool>("isCopyHack");
-
-
 auto isEditHack = Mod::get()->getSavedValue<bool>("isEditHack");
 
 // Misc
@@ -52,7 +55,6 @@ cocos2d::enumKeyCodes PickedKey = KEY_Tab;
 auto isNotHide = Mod::get()->getSavedValue<bool>("isNotHide");
 auto isNotDeathEffect = Mod::get()->getSavedValue<bool>("isNotDeathEffect");
 auto isNotShake = Mod::get()->getSavedValue<bool>("isNotShake");
-
 
 
 
@@ -75,7 +77,16 @@ class $modify(GameManager) {
         }
         else
         {
-            return GameManager::isColorUnlocked(id, type);
+            if (islockAllIcons)
+            {
+                return false;
+            }
+
+            else
+            {
+                return GameManager::isColorUnlocked(id, type);
+            }
+
         }
     }
     bool isIconUnlocked(int id, IconType type) {
@@ -86,7 +97,15 @@ class $modify(GameManager) {
         }
         else
         {
-            return GameManager::isIconUnlocked(id, type);
+            if (islockAllIcons)
+            {
+                return false;
+            }
+
+            else
+            {
+                return GameManager::isIconUnlocked(id, type);
+            }
         }
     }
 };
@@ -198,7 +217,7 @@ void PatchGame() {
 
 
     // Slider Bypass. Patch from MHv5
-    if (isSliderHack) {
+    if (isSliderHack) { 
         Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x2E5CA), {0xEB});
         Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x2E5F8), {0xEB});
     } else {
@@ -350,19 +369,25 @@ $on_mod(Loaded) {
             if (ImGui::IsItemHovered())
                 ImGui::SetTooltip("Opens the folder with geometrydash.exe");
 
+
             if (ImGui::Button("Crashlogs")) {
                 ShellExecuteA(NULL, "open", geode::dirs::getCrashlogsDir().string().c_str(), NULL, NULL, SW_SHOWDEFAULT);
             }
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("Opens the folder with the crashlogs");
+
 
             if (ImGui::Button("Settings")) {
                 OptionsLayer::addToCurrentScene(false);
             }
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("Opens the settings menu");
 
 
 
 
             if (ImGui::Combo("Menu Keybind", &selectedKeybindIndex, keybindOptions, IM_ARRAYSIZE(keybindOptions))) {
-                Mod::get()->setSavedValue<int>("menuKey", selectedKeybindIndex); // Could Be a better way to do this but it sucks
+                Mod::get()->setSavedValue<int>("menuKey", selectedKeybindIndex); // Really broken
                 caseMenuKeybind();
             }
 
@@ -375,6 +400,8 @@ $on_mod(Loaded) {
             ImGui::Begin("Speedhack");
 
             ImGui::Checkbox("Enable Speedhack", &isSpeedhack);
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("Slows down the game");
 
             if (isSpeedhack) {
                 CCDirector::sharedDirector()->getScheduler()->setTimeScale(SpeedHackSpeed);
@@ -396,6 +423,8 @@ $on_mod(Loaded) {
             ImGui::Checkbox("Noclip", &isNoclip);
 
             ImGui::Checkbox("No Collision", &isCollide);
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("You no longer collide with anything (even with the ground)");
 
             ImGui::Checkbox("Auto Complete", &autoComplete);
             if (ImGui::IsItemHovered())
@@ -412,8 +441,17 @@ $on_mod(Loaded) {
             {
                 Mod::get()->setSavedValue<bool>("isIconBypass", isIconBypass);
             }
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("Unlocks all icon");
 
-            if (ImGui::Checkbox("Slider Bypass", &isSliderHack)) {
+
+            ImGui::Checkbox("Lock all icons", &islockAllIcons);
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("Locks all icons (why would you do this)");
+
+
+            if (ImGui::Checkbox("Slider Bypass", &isSliderHack))
+            {
                 Mod::get()->setSavedValue<bool>("isSliderHack", isSliderHack);
                 PatchGame();
             }
@@ -424,6 +462,8 @@ $on_mod(Loaded) {
                 Mod::get()->setSavedValue<bool>("isCharacterBypass", isCharacterFilterBypass);
                 PatchGame();
             }
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("Bypasses the character filter, patch from MHv5");
 
             ImGui::End();
 
@@ -453,6 +493,9 @@ $on_mod(Loaded) {
             if (ImGui::Checkbox("No Camera Shake", &isNotShake)) {
                 Mod::get()->setSavedValue<bool>("isNotShake", isNotShake);
             }
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("Disables camera shake");
+                
 
             if (ImGui::Checkbox("No Death Effect", &isNotDeathEffect)) {
                 Mod::get()->setSavedValue<bool>("isNotDeathEffect", isNotDeathEffect);
@@ -460,8 +503,8 @@ $on_mod(Loaded) {
 
             ImGui::Checkbox("No Hide Player", &isNotHide);
 
-            ImGui::End();
 
+            ImGui::End();
 
 
             // DEBUG STUFF
