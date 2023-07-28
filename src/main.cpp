@@ -33,6 +33,8 @@ bool isNoclip = false;
 bool isCollide = false;
 bool autoComplete = false;
 
+bool show_app_style_editor = false;
+
 // Bypass
 auto isIconBypass = Mod::get()->getSavedValue<bool>("isIconBypass");
 bool islockAllIcons = false;
@@ -200,7 +202,6 @@ void caseMenuKeybind() {
         break;    
 
     default:
-        // code block
         log::warn("menuKey not found, reverting to tab.");
         PickedKey = KEY_Tab;
         break;
@@ -354,33 +355,42 @@ $on_mod(Loaded) {
 
 
         if (isMenuShown) {
+
+
+            if (show_app_style_editor)
+            {
+                ImGui::Begin("Dear ImGui Style Editor", &show_app_style_editor);
+                ImGui::ShowStyleEditor();
+                ImGui::End();
+            }
+
             ImGui::Begin("Misc");
             
             if (ImGui::Button("AppData")) {
                 ShellExecuteA(NULL, "open", CCFileUtils::get()->getWritablePath().c_str(), NULL, NULL, SW_SHOWDEFAULT);
             }
-            if (ImGui::IsItemHovered())
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
                 ImGui::SetTooltip("Opens the appdata folder");
 
 
             if (ImGui::Button("Game Directory")) {
                 ShellExecuteA(NULL, "open", geode::dirs::getGameDir().string().c_str(), NULL, NULL, SW_SHOWDEFAULT);
             }
-            if (ImGui::IsItemHovered())
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
                 ImGui::SetTooltip("Opens the folder with geometrydash.exe");
 
 
             if (ImGui::Button("Crashlogs")) {
                 ShellExecuteA(NULL, "open", geode::dirs::getCrashlogsDir().string().c_str(), NULL, NULL, SW_SHOWDEFAULT);
             }
-            if (ImGui::IsItemHovered())
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
                 ImGui::SetTooltip("Opens the folder with the crashlogs");
 
 
             if (ImGui::Button("Settings")) {
                 OptionsLayer::addToCurrentScene(false);
             }
-            if (ImGui::IsItemHovered())
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
                 ImGui::SetTooltip("Opens the settings menu");
 
 
@@ -400,7 +410,7 @@ $on_mod(Loaded) {
             ImGui::Begin("Speedhack");
 
             ImGui::Checkbox("Enable Speedhack", &isSpeedhack);
-            if (ImGui::IsItemHovered())
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
                 ImGui::SetTooltip("Slows down the game");
 
             if (isSpeedhack) {
@@ -423,11 +433,11 @@ $on_mod(Loaded) {
             ImGui::Checkbox("Noclip", &isNoclip);
 
             ImGui::Checkbox("No Collision", &isCollide);
-            if (ImGui::IsItemHovered())
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
                 ImGui::SetTooltip("You no longer collide with anything (even with the ground)");
 
             ImGui::Checkbox("Auto Complete", &autoComplete);
-            if (ImGui::IsItemHovered())
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
                 ImGui::SetTooltip("Auto completes next level you open, then resets this setting back to zero");
 
 
@@ -441,12 +451,12 @@ $on_mod(Loaded) {
             {
                 Mod::get()->setSavedValue<bool>("isIconBypass", isIconBypass);
             }
-            if (ImGui::IsItemHovered())
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
                 ImGui::SetTooltip("Unlocks all icon");
 
 
             ImGui::Checkbox("Lock all icons", &islockAllIcons);
-            if (ImGui::IsItemHovered())
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
                 ImGui::SetTooltip("Locks all icons (why would you do this)");
 
 
@@ -462,7 +472,7 @@ $on_mod(Loaded) {
                 Mod::get()->setSavedValue<bool>("isCharacterBypass", isCharacterFilterBypass);
                 PatchGame();
             }
-            if (ImGui::IsItemHovered())
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
                 ImGui::SetTooltip("Bypasses the character filter, patch from MHv5");
 
             ImGui::End();
@@ -493,7 +503,7 @@ $on_mod(Loaded) {
             if (ImGui::Checkbox("No Camera Shake", &isNotShake)) {
                 Mod::get()->setSavedValue<bool>("isNotShake", isNotShake);
             }
-            if (ImGui::IsItemHovered())
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
                 ImGui::SetTooltip("Disables camera shake");
                 
 

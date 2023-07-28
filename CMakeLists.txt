@@ -22,7 +22,7 @@ add_subdirectory($ENV{GEODE_SDK} $ENV{GEODE_SDK}/build)
 setup_geode_mod(${PROJECT_NAME})
 
 
-CPMAddPackage("gh:matcool/gd-imgui-cocos#b0064c6") # specify a commit!
+CPMAddPackage("gh:Igbalabanov/gd-imgui-cocos#5847848") # specify a commit!
 
 target_link_libraries(${PROJECT_NAME} imgui-cocos)
 
