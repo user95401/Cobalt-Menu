@@ -7,11 +7,9 @@
 #include <Geode/loader/Mod.hpp>
 #include <Geode/modify/PlayerObject.hpp>
 #include <Geode/modify/GJGameLevel.hpp>
-#include <Geode/modify/CCKeyboardDispatcher.hpp>
 #include <Geode/fmod/fmod.hpp>
 #include <Geode/modify/GameManager.hpp>
-#include <Geode/binding/EditorUI.hpp>
-
+#include <hjfod.custom-keybinds/include/Keybinds.hpp>
 
 
 using namespace geode::prelude;
@@ -46,29 +44,39 @@ auto isSliderHack = Mod::get()->getSavedValue<bool>("isSliderHack");
 auto isCopyHack = Mod::get()->getSavedValue<bool>("isCopyHack");
 auto isEditHack = Mod::get()->getSavedValue<bool>("isEditHack");
 
-// Misc
-int menuKey;
-const char* keybindOptions[] = { "Tab", "F1", "F2", "F3", "F4", "F5", "Control"};
-int selectedKeybindIndex = Mod::get()->getSavedValue<int>("menuKey");
 
-cocos2d::enumKeyCodes PickedKey = KEY_Tab;
 
 // Visual
 auto isNotHide = Mod::get()->getSavedValue<bool>("isNotHide");
 auto isNotDeathEffect = Mod::get()->getSavedValue<bool>("isNotDeathEffect");
 auto isNotShake = Mod::get()->getSavedValue<bool>("isNotShake");
 
+$execute {
+    using namespace keybinds;
 
+    BindManager::get()->registerBindable({
+        // ID, should be prefixed with mod ID
+        "openmenu"_spr,
+        // Name
+        "Open/Close Cobalt",
+        // Description, leave empty for none
+        "Key for opening or closing the mod menu",
+        // Default binds
+        { Keybind::create(KEY_Tab, Modifier::None) },
+        // Category; use slashes for specifying subcategories. See the 
+        // Category class for default categories
+        "Cobalt"
+    });
 
-class $modify(CCKeyboardDispatcher) {
-    bool dispatchKeyboardMSG(enumKeyCodes key, bool down) {
-        if (down && (key == PickedKey)) {
-            isMenuShown = !isMenuShown;
-            return true;
+    new EventListener([&](InvokeBindEvent* event) {
+        if (event->isDown()) {
+    	    isMenuShown = !isMenuShown;
         }
-        return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down);
-    }
-};
+	    return ListenerResult::Propagate;
+    }, InvokeBindFilter(nullptr, "openmenu"_spr));
+
+}
+
 
 class $modify(GameManager) {
     bool isColorUnlocked(int id, bool type)
@@ -167,46 +175,6 @@ class $modify(PlayerObject) {
     }
 };
 
-// This is not the best way to do this
-void caseMenuKeybind() {
-
-    menuKey = Mod::get()->getSavedValue<int>("menuKey");
-
-    switch(menuKey) {
-    case 0:
-        PickedKey = KEY_Tab;
-        break;
-
-    case 1:
-        PickedKey = KEY_F1;
-        break;
-
-    case 2:
-        PickedKey = KEY_F2;
-        break;
-
-    case 3:
-        PickedKey = KEY_F3;
-        break;
-
-    case 4:
-        PickedKey = KEY_F4;
-        break;
-
-    case 5:
-        PickedKey = KEY_F5;
-        break;
-
-    case 6:
-        PickedKey = KEY_Control;
-        break;    
-
-    default:
-        log::warn("menuKey not found, reverting to tab.");
-        PickedKey = KEY_Tab;
-        break;
-    }
-}
 
 void PatchGame() {
 
@@ -250,13 +218,12 @@ $on_mod(Loaded) {
 
     PatchGame();
 
-    caseMenuKeybind();
 
     
 
 
     ImGuiCocos::get().setup([&] {
-       ImGuiStyle * style = &ImGui::GetStyle();
+        ImGuiStyle * style = &ImGui::GetStyle();
 
         ImGuiIO& io = ImGui::GetIO();
         io.Fonts->AddFontFromFileTTF((Mod::get()->getResourcesDir() / "Inter-Regular.ttf").string().c_str(), FontSize);
@@ -359,8 +326,8 @@ $on_mod(Loaded) {
 
 
             ImGui::Begin("Misc");
-
             
+
             if (ImGui::Button("AppData")) {
                 ShellExecuteA(NULL, "open", CCFileUtils::get()->getWritablePath().c_str(), NULL, NULL, SW_SHOWDEFAULT);
             }
@@ -389,11 +356,6 @@ $on_mod(Loaded) {
                 ImGui::SetTooltip("Opens the settings menu");
 
 
-            if (ImGui::Combo("Menu Keybind", &selectedKeybindIndex, keybindOptions, IM_ARRAYSIZE(keybindOptions))) {
-                Mod::get()->setSavedValue<int>("menuKey", selectedKeybindIndex); // Really broken
-                caseMenuKeybind();
-            }
-
             ImGui::End();
 
             
@@ -408,8 +370,6 @@ $on_mod(Loaded) {
 
             if (isSpeedhack) {
                 CCDirector::sharedDirector()->getScheduler()->setTimeScale(SpeedHackSpeed);
-                
-
             }
             else 
             {
@@ -490,6 +450,10 @@ $on_mod(Loaded) {
             ImGui::End();
 
 
+
+
+
+
             // Visual Stuff
             ImGui::Begin("Visual");
             
@@ -517,7 +481,6 @@ $on_mod(Loaded) {
 
                 ImGui::Begin("DEBUG");
                 
-                ImGui::Text("Selected Keybind Index: %d", selectedKeybindIndex);
 
                 ImGui::Separator();
                 ImGui::Text("Saved Values:");

@@ -10,6 +10,11 @@
             "id": "camila314.acbypass",
             "version": ">=v1.0.0",
             "required": true
+        },
+        {
+            "id": "hjfod.custom-keybinds",
+            "version": "v1.0.0",
+            "required": true  
         }
     ],
     "repository": "https://github.com/Igbalabanov/Cobalt-Menu",
