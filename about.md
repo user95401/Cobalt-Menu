@@ -11,3 +11,5 @@ Features:
  - No death effect
  - Speedhack
  - Copy Hack
+ - Keybind support
+ - Icon Bypass
