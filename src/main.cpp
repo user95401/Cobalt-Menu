@@ -68,12 +68,44 @@ $execute {
         "Cobalt"
     });
 
+    BindManager::get()->registerBindable({
+        // ID, should be prefixed with mod ID
+        "isSpeedHackOn"_spr,
+        // Name
+        "turn Speedhack On/Off",
+        // Description, leave empty for none
+        "Turns Speedhack On or Off.",
+        // Default binds
+        { },
+        // Category; use slashes for specifying subcategories. See the 
+        // Category class for default categories
+        "Cobalt/Speedhack"
+    });
+
+
+
+
     new EventListener([&](InvokeBindEvent* event) {
         if (event->isDown()) {
     	    isMenuShown = !isMenuShown;
         }
 	    return ListenerResult::Propagate;
     }, InvokeBindFilter(nullptr, "openmenu"_spr));
+
+
+    new EventListener([&](InvokeBindEvent* event) {
+        if (event->isDown()) {
+            isSpeedhack = !isSpeedhack;
+            if (isSpeedhack) {
+                CCDirector::sharedDirector()->getScheduler()->setTimeScale(SpeedHackSpeed);
+            }
+            else 
+            {
+                CCDirector::sharedDirector()->getScheduler()->setTimeScale(1.0f);
+            }
+        }
+	    return ListenerResult::Propagate;
+    }, InvokeBindFilter(nullptr, "isSpeedHackOn"_spr));
 
 }
 
