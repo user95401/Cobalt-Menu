@@ -1,7 +1,6 @@
 #include <shellapi.h>
 #include <imgui-cocos.hpp>
 #include <chrono>
-
 #include <Geode/cocos/CCDirector.h>
 #include <Geode/modify/OptionsLayer.hpp>
 #include <Geode/modify/PlayLayer.hpp>
@@ -23,6 +22,8 @@ bool isDebugOn = Mod::get()->getSettingValue<bool>("isDebugOn");
 
 auto FontSize = Mod::get()->getSettingValue<int64_t>("FontSize");
 
+bool show_app_style_editor = false;
+
 
 // Speedhack
 static float SpeedHackSpeed = 1.00f;
@@ -33,7 +34,6 @@ bool isNoclip = false;
 bool isCollide = false;
 bool autoComplete = false;
 
-bool show_app_style_editor = false;
 
 // Bypass
 auto isIconBypass = Mod::get()->getSavedValue<bool>("isIconBypass");
@@ -357,14 +357,9 @@ $on_mod(Loaded) {
         if (isMenuShown) {
 
 
-            if (show_app_style_editor)
-            {
-                ImGui::Begin("Dear ImGui Style Editor", &show_app_style_editor);
-                ImGui::ShowStyleEditor();
-                ImGui::End();
-            }
 
             ImGui::Begin("Misc");
+
             
             if (ImGui::Button("AppData")) {
                 ShellExecuteA(NULL, "open", CCFileUtils::get()->getWritablePath().c_str(), NULL, NULL, SW_SHOWDEFAULT);
@@ -392,8 +387,6 @@ $on_mod(Loaded) {
             }
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
                 ImGui::SetTooltip("Opens the settings menu");
-
-
 
 
             if (ImGui::Combo("Menu Keybind", &selectedKeybindIndex, keybindOptions, IM_ARRAYSIZE(keybindOptions))) {
@@ -517,6 +510,8 @@ $on_mod(Loaded) {
             ImGui::End();
 
 
+
+
             // DEBUG STUFF
             if (isDebugOn) {
 
@@ -531,11 +526,21 @@ $on_mod(Loaded) {
 
                 ImGui::Text("Speed: %f", SpeedHackSpeed);
 
+                ImGui::Separator();
 
-               
+                ImGui::Checkbox("Style editor", &show_app_style_editor);
 
                 ImGui::End();
             }
+
+
+            if (show_app_style_editor)
+            {
+                ImGui::Begin("Dear ImGui Style Editor", &show_app_style_editor);
+                ImGui::ShowStyleEditor();
+                ImGui::End();
+            }
+
 
         }
     });
