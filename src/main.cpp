@@ -10,7 +10,6 @@
 #include <Geode/fmod/fmod.hpp>
 #include <Geode/modify/GameManager.hpp>
 #include <hjfod.custom-keybinds/include/Keybinds.hpp>
-#include <Geode/modify/CCDirector.hpp>
 
 using namespace geode::prelude;
 
@@ -154,11 +153,7 @@ class $modify(GameManager) {
     }
 };
 
-class $modify(CCDirector) {
-    void replaceScene(cocos2d::CCScene* pScene) {
-        CCTransitionFade::create(.5f, pScene);
-    }
-};
+
 
 
 class $modify(PlayLayerModification, PlayLayer) {
