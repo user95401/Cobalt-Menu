@@ -10,6 +10,7 @@
 #include <Geode/fmod/fmod.hpp>
 #include <Geode/modify/GameManager.hpp>
 #include <hjfod.custom-keybinds/include/Keybinds.hpp>
+#include <Geode/loader/SettingEvent.hpp>
 
 using namespace geode::prelude;
 
@@ -37,9 +38,6 @@ auto isIconBypass = Mod::get()->getSavedValue<bool>("isIconBypass");
 bool islockAllIcons = false;
 auto isCharacterFilterBypass = Mod::get()->getSavedValue<bool>("isCharacterFilterBypass");
 auto isSliderHack = Mod::get()->getSavedValue<bool>("isSliderHack");
-
-// Global
-
 auto isCopyHack = Mod::get()->getSavedValue<bool>("isCopyHack");
 auto isEditHack = Mod::get()->getSavedValue<bool>("isEditHack");
 
@@ -107,6 +105,12 @@ $execute {
         }
 	    return ListenerResult::Propagate;
     }, InvokeBindFilter(nullptr, "isSpeedHackOn"_spr));
+
+
+    listenForSettingChanges("isDebugOn", +[](bool value) {
+        isDebugOn = value;
+    });
+
 
 }
 
@@ -337,8 +341,8 @@ $on_mod(Loaded) {
         style->Colors[ImGuiCol_SeparatorHovered] = ImVec4(0.4282635748386383f, 0.531344473361969f, 0.6437768340110779f, 0.7799999713897705f);
         style->Colors[ImGuiCol_SeparatorActive] = ImVec4(0.4804288148880005f, 0.5780996084213257f, 0.6909871101379395f, 1.0f);
         style->Colors[ImGuiCol_ResizeGrip] = ImVec4(0.5312494039535522f, 0.6636775732040405f, 0.8197425007820129f, 0.2000000029802322f);
-        style->Colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.2588235437870026f, 0.5882353186607361f, 0.9764705896377563f, 0.6700000166893005f);
-        style->Colors[ImGuiCol_ResizeGripActive] = ImVec4(0.2588235437870026f, 0.5882353186607361f, 0.9764705896377563f, 0.949999988079071f);
+        style->Colors[ImGuiCol_ResizeGripHovered]      = ImVec4(0.15f, 0.65f, 0.38f, 0.67f);
+        style->Colors[ImGuiCol_ResizeGripActive]       = ImVec4(0.22f, 0.66f, 0.45f, 0.95f);
         style->Colors[ImGuiCol_Tab] = ImVec4(0.110519640147686f, 0.6437768340110779f, 0.3210758566856384f, 0.8619999885559082f);
         style->Colors[ImGuiCol_TabHovered] = ImVec4(0.2249074280261993f, 0.3175965547561646f, 0.2424695938825607f, 0.8111587762832642f);
         style->Colors[ImGuiCol_TabActive] = ImVec4(0.1953987032175064f, 0.4987000524997711f, 0.5836910009384155f, 1.0f);
@@ -359,6 +363,9 @@ $on_mod(Loaded) {
         style->Colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.0f, 1.0f, 1.0f, 0.699999988079071f);
         style->Colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.800000011920929f, 0.800000011920929f, 0.800000011920929f, 0.2000000029802322f);
 	    style->Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.800000011920929f, 0.800000011920929f, 0.800000011920929f, 0.3499999940395355f);
+
+
+
 
     }).draw([&] {
 
@@ -423,7 +430,6 @@ $on_mod(Loaded) {
             ImGui::End();
 
 
-
             // Cheats and more stuff
             ImGui::Begin("Cheats");
             
@@ -443,26 +449,6 @@ $on_mod(Loaded) {
 
             // Cheats and more stuff
             ImGui::Begin("Bypass");
-            
-            if (ImGui::Checkbox("Icon Bypass", &isIconBypass))
-            {
-                Mod::get()->setSavedValue<bool>("isIconBypass", isIconBypass);
-            }
-            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
-                ImGui::SetTooltip("Unlocks all icon");
-
-
-            ImGui::Checkbox("Lock all icons", &islockAllIcons);
-            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
-                ImGui::SetTooltip("Locks all icons (why would you do this)");
-
-
-            if (ImGui::Checkbox("Slider Bypass", &isSliderHack))
-            {
-                Mod::get()->setSavedValue<bool>("isSliderHack", isSliderHack);
-                PatchGame();
-            }
-
 
             if (ImGui::Checkbox("Character Filter Bypass", &isCharacterFilterBypass))
             {
@@ -472,22 +458,37 @@ $on_mod(Loaded) {
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
                 ImGui::SetTooltip("Bypasses the character filter, patch from MHv5");
 
-            ImGui::End();
-
-
-            // Global
-            ImGui::Begin("Global");
 
             if (ImGui::Checkbox("Copy Hack", &isCopyHack)) {
                 Mod::get()->setSavedValue<bool>("isCopyHack", isCopyHack);
                 PatchGame();
             }
-
+            
             if (ImGui::Checkbox("Edit Hack", &isEditHack)) {
                 Mod::get()->setSavedValue<bool>("isEditHack", isEditHack);
                 PatchGame();
             }
 
+            if (ImGui::Checkbox("Icon Bypass", &isIconBypass))
+            {
+                Mod::get()->setSavedValue<bool>("isIconBypass", isIconBypass);
+            }
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+                ImGui::SetTooltip("Unlocks all icon");
+
+
+
+            ImGui::Checkbox("Lock all icons", &islockAllIcons);
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+                ImGui::SetTooltip("Locks all icons (why would you do this)");
+
+
+
+            if (ImGui::Checkbox("Slider Bypass", &isSliderHack))
+            {
+                Mod::get()->setSavedValue<bool>("isSliderHack", isSliderHack);
+                PatchGame();
+            }
 
 
 
