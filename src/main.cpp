@@ -10,7 +10,7 @@
 #include <Geode/fmod/fmod.hpp>
 #include <Geode/modify/GameManager.hpp>
 #include <hjfod.custom-keybinds/include/Keybinds.hpp>
-
+#include <Geode/modify/CCDirector.hpp>
 
 using namespace geode::prelude;
 
@@ -50,6 +50,8 @@ auto isEditHack = Mod::get()->getSavedValue<bool>("isEditHack");
 auto isNotHide = Mod::get()->getSavedValue<bool>("isNotHide");
 auto isNotDeathEffect = Mod::get()->getSavedValue<bool>("isNotDeathEffect");
 auto isNotShake = Mod::get()->getSavedValue<bool>("isNotShake");
+auto isTransitionOff = Mod::get()->getSavedValue<bool>("isTransitionOff");
+
 
 $execute {
     using namespace keybinds;
@@ -152,6 +154,12 @@ class $modify(GameManager) {
     }
 };
 
+class $modify(CCDirector) {
+    void replaceScene(cocos2d::CCScene* pScene) {
+        CCTransitionFade::create(.5f, pScene);
+    }
+};
+
 
 class $modify(PlayLayerModification, PlayLayer) {
 
@@ -240,6 +248,15 @@ void PatchGame() {
     // Character Filter Bypass. Patch from MHv5
     if (isCharacterFilterBypass) Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x21A99), {0x90, 0x90});
     else Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x21A99), {0x75, 0x04});
+
+    // Copy Hack. Patch from (guess what?)MHv5
+    if (isTransitionOff) {
+        Mod::get()->patch(reinterpret_cast<void*>(base::getCocos() + 0xA5424), {0x90, 0x90, 0x90, 0x90, 0x90});
+    } else {
+        Mod::get()->patch(reinterpret_cast<void*>(base::getCocos() + 0xA5424), {0xF3, 0x0F, 0x10, 0x45, 0x08});
+    }
+
+
 
 }
 
@@ -501,6 +518,14 @@ $on_mod(Loaded) {
             }
 
             ImGui::Checkbox("No Hide Player", &isNotHide);
+
+            if (ImGui::Checkbox("No Transitions", &isTransitionOff)) {
+                Mod::get()->setSavedValue<bool>("isTransitionOff", isTransitionOff);
+                PatchGame();
+                
+            }
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+                ImGui::SetTooltip("Disables transitions. (Patch from MHv5)");
 
 
             ImGui::End();
