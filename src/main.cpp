@@ -11,6 +11,9 @@
 #include <Geode/modify/GameManager.hpp>
 #include <hjfod.custom-keybinds/include/Keybinds.hpp>
 #include <Geode/loader/SettingEvent.hpp>
+#include <Geode/modify/GJGameLevel.hpp>
+#include <Geode/modify/LevelInfoLayer.hpp>
+
 
 using namespace geode::prelude;
 
@@ -114,6 +117,25 @@ $execute {
 
 }
 
+class $modify(LevelInfoLayer) {
+	static LevelInfoLayer* create(GJGameLevel* gameLevel) {
+		auto LevelInfolayer = LevelInfoLayer::create(gameLevel);
+		
+        if (isCopyHack) {
+            gameLevel->m_password = 1;
+        }
+
+		return LevelInfolayer;
+	}
+
+	bool init(GJGameLevel* level) {
+        LevelInfoLayer::init(level);
+        
+
+        return true;
+ 
+    }
+};
 
 class $modify(GameManager) {
     bool isColorUnlocked(int id, bool type)
@@ -156,7 +178,6 @@ class $modify(GameManager) {
         }
     }
 };
-
 
 
 
@@ -233,29 +254,17 @@ void PatchGame() {
         Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x2E5F8), {0x76});
     }
 
-    // Copy Hack. Patch from MHv5
-    if (isCopyHack) {
-        Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x179B8E), {0x90, 0x90});
-        Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x176F5C), {0x8B, 0xCA, 0x90});
-        Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x176FE5), {0xB0, 0x01, 0x90});
-    } else {
-        Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x179B8E), {0x75, 0x0E});
-        Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x176F5C), {0x0F, 0x44, 0xCA});
-        Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x176FE5), {0x0F, 0x95, 0xC0});
-    }
 
     // Character Filter Bypass. Patch from MHv5
     if (isCharacterFilterBypass) Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x21A99), {0x90, 0x90});
     else Mod::get()->patch(reinterpret_cast<void*>(base::get() + 0x21A99), {0x75, 0x04});
 
-    // Copy Hack. Patch from (guess what?)MHv5
+    // No transition hack. Patch from (guess what?) MHv5
     if (isTransitionOff) {
         Mod::get()->patch(reinterpret_cast<void*>(base::getCocos() + 0xA5424), {0x90, 0x90, 0x90, 0x90, 0x90});
     } else {
         Mod::get()->patch(reinterpret_cast<void*>(base::getCocos() + 0xA5424), {0xF3, 0x0F, 0x10, 0x45, 0x08});
     }
-
-
 
 }
 
@@ -461,7 +470,6 @@ $on_mod(Loaded) {
 
             if (ImGui::Checkbox("Copy Hack", &isCopyHack)) {
                 Mod::get()->setSavedValue<bool>("isCopyHack", isCopyHack);
-                PatchGame();
             }
             
             if (ImGui::Checkbox("Edit Hack", &isEditHack)) {
