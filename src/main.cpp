@@ -13,7 +13,9 @@
 #include <Geode/loader/SettingEvent.hpp>
 #include <Geode/modify/GJGameLevel.hpp>
 #include <Geode/modify/LevelInfoLayer.hpp>
-
+#include <Geode/modify/EditLevelLayer.hpp>
+#include <Geode/modify/PauseLayer.hpp>
+#include <Geode/modify/FMODSound.hpp>
 
 using namespace geode::prelude;
 
@@ -41,9 +43,14 @@ auto isIconBypass = Mod::get()->getSavedValue<bool>("isIconBypass");
 bool islockAllIcons = false;
 auto isCharacterFilterBypass = Mod::get()->getSavedValue<bool>("isCharacterFilterBypass");
 auto isSliderHack = Mod::get()->getSavedValue<bool>("isSliderHack");
+auto isAutoVerify = Mod::get()->getSavedValue<bool>("isAutoVerify");
+
+
+// Level
+auto isAutoLDM = Mod::get()->getSavedValue<bool>("isAutoLDM");
 auto isCopyHack = Mod::get()->getSavedValue<bool>("isCopyHack");
 auto isEditHack = Mod::get()->getSavedValue<bool>("isEditHack");
-
+auto isDisableQuit = Mod::get()->getSavedValue<bool>("isDisableQuit");
 
 
 // Visual
@@ -117,6 +124,8 @@ $execute {
 
 }
 
+
+
 class $modify(LevelInfoLayer) {
 	static LevelInfoLayer* create(GJGameLevel* gameLevel) {
 		auto LevelInfolayer = LevelInfoLayer::create(gameLevel);
@@ -125,6 +134,9 @@ class $modify(LevelInfoLayer) {
             gameLevel->m_password = 1;
         }
 
+        if (isAutoLDM) {
+            gameLevel->m_lowDetailModeToggled = true;
+        }
 		return LevelInfolayer;
 	}
 
@@ -134,6 +146,45 @@ class $modify(LevelInfoLayer) {
 
         return true;
  
+    }
+};
+
+
+class $modify(EditLevelLayer) {
+	static EditLevelLayer* create(GJGameLevel* editLevel) {
+		auto EditLevelLayer = EditLevelLayer::create(editLevel);
+		
+
+        if (isAutoLDM) {
+            editLevel->m_lowDetailModeToggled = true;
+        }
+        
+        if (isAutoVerify) {
+            editLevel->m_isVerified = true;
+        }
+
+		return EditLevelLayer;
+	}
+
+	bool init(GJGameLevel* level) {
+        EditLevelLayer::init(level);
+        
+
+        return true;
+ 
+    }
+};
+
+
+
+class $modify(PauseLayer) {
+    void onQuit(CCObject* CCObj) {
+        if (isDisableQuit) {
+
+        }
+        else {
+            PauseLayer::onQuit(CCObj);
+        }
     }
 };
 
@@ -430,16 +481,48 @@ $on_mod(Loaded) {
 
             if (isSpeedhack) {
                 CCDirector::sharedDirector()->getScheduler()->setTimeScale(SpeedHackSpeed);
+                FMOD_Channel_SetPitch();
             }
             else 
             {
                 CCDirector::sharedDirector()->getScheduler()->setTimeScale(1.0f);
+
             }
             ImGui::DragFloat("Speed", &SpeedHackSpeed, 0.1f, 0.0f, 5.0f);
             ImGui::End();
 
 
-            // Cheats and more stuff
+
+            // Level
+            ImGui::Begin("Level");
+
+            if (ImGui::Checkbox("Auto LDM", &isAutoLDM)) {
+                Mod::get()->setSavedValue<bool>("isAutoLDM", isAutoLDM);
+            }
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+                ImGui::SetTooltip("Auto enables LDM");
+
+
+            if (ImGui::Checkbox("Copy Hack", &isCopyHack)) {
+                Mod::get()->setSavedValue<bool>("isCopyHack", isCopyHack);
+            }
+            
+            if (ImGui::Checkbox("Edit Hack", &isEditHack)) {
+                Mod::get()->setSavedValue<bool>("isEditHack", isEditHack);
+                PatchGame();
+            }
+
+            if (ImGui::Checkbox("No Quit", &isDisableQuit)) {
+                Mod::get()->setSavedValue<bool>("isDisableQuit", isDisableQuit);
+            }
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+                ImGui::SetTooltip("Disables Quiting the level from the pause menu");
+
+            ImGui::End();
+
+
+
+            // Cheats and other stuff
             ImGui::Begin("Cheats");
             
             ImGui::Checkbox("Noclip", &isNoclip);
@@ -468,21 +551,13 @@ $on_mod(Loaded) {
                 ImGui::SetTooltip("Bypasses the character filter, patch from MHv5");
 
 
-            if (ImGui::Checkbox("Copy Hack", &isCopyHack)) {
-                Mod::get()->setSavedValue<bool>("isCopyHack", isCopyHack);
-            }
-            
-            if (ImGui::Checkbox("Edit Hack", &isEditHack)) {
-                Mod::get()->setSavedValue<bool>("isEditHack", isEditHack);
-                PatchGame();
-            }
 
             if (ImGui::Checkbox("Icon Bypass", &isIconBypass))
             {
                 Mod::get()->setSavedValue<bool>("isIconBypass", isIconBypass);
             }
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
-                ImGui::SetTooltip("Unlocks all icon");
+                ImGui::SetTooltip("Unlocks all icons");
 
 
 
@@ -497,6 +572,13 @@ $on_mod(Loaded) {
                 Mod::get()->setSavedValue<bool>("isSliderHack", isSliderHack);
                 PatchGame();
             }
+
+            if (ImGui::Checkbox("Verify Hack", &isAutoVerify))
+            {
+                Mod::get()->setSavedValue<bool>("isAutoVerify", isAutoVerify);
+            }
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+                ImGui::SetTooltip("Allows you to upload unverified levels");
 
 
 
