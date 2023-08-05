@@ -15,7 +15,7 @@
 #include <Geode/modify/LevelInfoLayer.hpp>
 #include <Geode/modify/EditLevelLayer.hpp>
 #include <Geode/modify/PauseLayer.hpp>
-#include <Geode/modify/FMODSound.hpp>
+#include <Geode/binding/FMODAudioEngine.hpp>
 
 using namespace geode::prelude;
 
@@ -31,6 +31,7 @@ bool show_app_style_editor = false;
 // Speedhack
 static float SpeedHackSpeed = 1.00f;
 bool isSpeedhack = false;
+auto isSpeedhackSong = Mod::get()->getSavedValue<bool>("isSpeedhackSong");
 
 // Cheats
 bool isNoclip = false;
@@ -107,10 +108,11 @@ $execute {
             isSpeedhack = !isSpeedhack;
             if (isSpeedhack) {
                 CCDirector::sharedDirector()->getScheduler()->setTimeScale(SpeedHackSpeed);
+                if (isSpeedhackSong) {FMODAudioEngine::sharedEngine()->m_globalChannel->setPitch(SpeedHackSpeed);}
             }
-            else 
-            {
+            else {
                 CCDirector::sharedDirector()->getScheduler()->setTimeScale(1.0f);
+                if (isSpeedhackSong) {FMODAudioEngine::sharedEngine()->m_globalChannel->setPitch(1.0f);}
             }
         }
 	    return ListenerResult::Propagate;
@@ -265,6 +267,13 @@ class $modify(PlayLayerModification, PlayLayer) {
         {
             PlayLayer::shakeCamera(p0, p1, p2);
         }
+    }
+
+    void resetLevel() {
+        if (isSpeedhack) {
+            if (isSpeedhackSong) {FMODAudioEngine::sharedEngine()->m_globalChannel->setPitch(SpeedHackSpeed);}
+        }
+        PlayLayer::resetLevel();
     }
 };
 
@@ -479,15 +488,22 @@ $on_mod(Loaded) {
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
                 ImGui::SetTooltip("Slows down the game");
 
+            if (ImGui::Checkbox("Speedhack Song", &isSpeedhackSong)) {
+                Mod::get()->setSavedValue<bool>("isSpeedhackSong", isSpeedhackSong);
+            }
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+                ImGui::SetTooltip("Slows down the song when speedhack is on (Really broken!)");
+
+
             if (isSpeedhack) {
                 CCDirector::sharedDirector()->getScheduler()->setTimeScale(SpeedHackSpeed);
-                FMOD_Channel_SetPitch();
+                if (isSpeedhackSong) {FMODAudioEngine::sharedEngine()->m_globalChannel->setPitch(SpeedHackSpeed);}
             }
-            else 
-            {
+            else {
                 CCDirector::sharedDirector()->getScheduler()->setTimeScale(1.0f);
-
+                if (isSpeedhackSong) {FMODAudioEngine::sharedEngine()->m_globalChannel->setPitch(1.0f);}
             }
+
             ImGui::DragFloat("Speed", &SpeedHackSpeed, 0.1f, 0.0f, 5.0f);
             ImGui::End();
 
@@ -577,8 +593,6 @@ $on_mod(Loaded) {
             {
                 Mod::get()->setSavedValue<bool>("isAutoVerify", isAutoVerify);
             }
-            if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
-                ImGui::SetTooltip("Allows you to upload unverified levels");
 
 
 
