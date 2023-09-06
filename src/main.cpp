@@ -642,8 +642,6 @@ $on_mod(Loaded) {
                 ImGui::Separator();
                 ImGui::Text("Saved Values:");
 
-                ImGui::Text("menuKey: %d", Mod::get()->getSavedValue<int>("menuKey"));
-
                 ImGui::Text("Speed: %f", SpeedHackSpeed);
 
                 ImGui::Separator();
